@@ -74,11 +74,29 @@ public class FacebookAuth extends Plugin {
 			this.getResponse(first); // first arg is path
 		} else if (action.equals("getAccess")){
 			this.getAccess();
+		} else if (action.equals("setAccessToken")){
+			String second = "";
+			try {
+				second = args.getString(1);
+			} catch (JSONException e) {
+				Log.w("Facebook-Plugin", "Missing expiration time argument");
+			}
+			this.setAccessToken(first, second);
 		}
 		
 		PluginResult r = new PluginResult(PluginResult.Status.NO_RESULT);
 		r.setKeepCallback(true);
 		return r;
+	}
+	
+	public void setAccessToken(final String token, final String expiresIn) {
+		try {
+			this.mFb.setAccessToken(token);
+			if (!"".equals(expiresIn))
+				this.mFb.setAccessExpiresIn(expiresIn);
+		} catch (Exception e) {
+			Log.e("Facebook-Plugin", "Can't set session access info", e);
+		}
 	}
 	
 	public void getAccess(){

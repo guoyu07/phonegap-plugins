@@ -22,6 +22,10 @@
 	    PhoneGap.exec(callback, null, "FacebookAuth", "getAccess", []);	
 	};
 	
+	Facebook.prototype.setAccess = function(token, expireIn, callback) {
+	    PhoneGap.exec(callback, null, "FacebookAuth", "setAccess", [toke, expireIn]);	
+	};
+	
 	/**
 	 * Load Plugin
 	 */
