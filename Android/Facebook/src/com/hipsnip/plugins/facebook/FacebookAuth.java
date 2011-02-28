@@ -3,6 +3,10 @@
  */
 package com.hipsnip.plugins.facebook;
 
+import java.lang.reflect.Array;
+import java.util.ArrayList;
+import java.util.List;
+
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -39,19 +43,33 @@ public class FacebookAuth extends Plugin {
 	 */
 	public PluginResult execute(String action, JSONArray args, String callbackId) {
 		callback = callbackId;
-		System.out.println("execute: "+ action);
+		Log.d("Facebook-Plugin", "Execute action: "+ action);
 		
 		String first;
 		
 		try {
 			first = args.getString(0);
+			Log.d("Facebook-Plugin", "Execute first argument: " + first);
         } catch (JSONException e) {
 			first = "";
 		    Log.w("Facebook-Plugin", "No arguments in execute");
 		}
 		
 		if (action.equals("authorize")) {
-			this.authorize(first); // first arg is APP_ID
+			try {
+				JSONArray second = args.getJSONArray(1);
+				String[] perms = new String[second.length()];
+				for (int i = 0; i < second.length(); i++) {
+					perms[i] = second.getString(i);
+				}
+				Log.d("Facebook-Plugin", "Call authorize() with perms: "+perms);
+				this.authorize(first, perms); // first arg is APP_ID
+	        } catch (JSONException e) {
+			    Log.w("Facebook-Plugin", "Can't get permissions argument when calling authorize().");
+				this.authorize(first, new String[] {}); // first arg is APP_ID
+			} catch (Exception e) {
+				Log.e("Facebook-Plugin", "Failed to call authorize()", e);
+			}
 		} else if (action.equals("request")){
 			this.getResponse(first); // first arg is path
 		} else if (action.equals("getAccess")){
@@ -123,14 +141,14 @@ public class FacebookAuth extends Plugin {
      * 
      * @return				"" if ok, or error message.
      */
-    public void authorize(final String appid) {
+    public void authorize(final String appid, final String[] perms) {
     	Log.d("PhoneGapLog", "authorize");
 		final FacebookAuth fba = this;
 		Runnable runnable = new Runnable() {
 			public void run() {
 				fba.mFb = new Facebook(appid);
 				fba.mFb.setPlugin(fba);
-		        fba.mFb.authorize((Activity) fba.ctx, new String[] {}, new AuthorizeListener(fba));
+		        fba.mFb.authorize((Activity) fba.ctx, perms, new AuthorizeListener(fba));
 
 			};
 		};
